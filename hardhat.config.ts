@@ -54,6 +54,12 @@ const config: HardhatUserConfig = {
     deployer: {
       default: 0,
     },
+    operator: {
+      default: 1,
+    },
+    buyer: {
+      default: 2,
+    },
   },
   etherscan: {
     apiKey: {

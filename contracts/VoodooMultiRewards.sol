@@ -22,6 +22,8 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
 
     mapping(uint256 => Token) public nfts;
 
+    event AddTokenType(uint256 tokenId);
+
     constructor(string memory _baseURI) ERC1155(_baseURI) GranularRoles(msg.sender) {
         baseURI = _baseURI;
         owner_ = msg.sender;
@@ -86,6 +88,9 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
         nfts[_tokenId].mintPrice = _price;
 
         _startMinting(_tokenId);
+
+        // Return an event here
+        emit AddTokenType(_tokenId);
     }
 
     // Set token price

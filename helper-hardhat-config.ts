@@ -33,6 +33,7 @@ export const REVEAL_AFTER = 3600; // 1 hour
 export const MAX_SUPPLY = 10; // 0 - 9 tokens will be minted
 export const PRICE_PER_TOKEN = 0.001;
 export const DEFAULT_TOKEN_ALLOCATION = 1;
+export const DEFAULT_TOKEN_ID = 1;
 
 export const PRE_REVEAL_BASE_URI =
   "https://gateway.pinata.cloud/ipfs/QmZDk3hcmMCiPP5GfCRF29CigfrNZk1ohgvHXwAT2J5aJm/";
