@@ -11,14 +11,17 @@ import {
 
 import verify, { writeContractAddress } from "../utils/helper-functions";
 
-const deployNFT: DeployFunction = async function (
+const deploy1155: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments, network } = hre;
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  const config = { contract_uri: PRE_REVEAL_BASE_URI + PRE_REVEAL_METADATA };
+  const config = {
+    baseURI: PRE_REVEAL_BASE_URI + PRE_REVEAL_METADATA,
+    contractURI: CONTRACT_URI,
+  };
   const voodooContract = await deploy(VOODOO_MULTI_REWARD, {
     from: deployer,
     args: Object.values(config),
@@ -39,5 +42,5 @@ const deployNFT: DeployFunction = async function (
   await writeContractAddress(VOODOO_MULTI_REWARD, voodooContract.address);
 };
 
-export default deployNFT;
-deployNFT.tags = ["all", "contract"];
+export default deploy1155;
+deploy1155.tags = ["all", "contract"];

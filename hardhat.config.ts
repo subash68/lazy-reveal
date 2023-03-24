@@ -63,6 +63,9 @@ const config: HardhatUserConfig = {
     updater: {
       default: 3,
     },
+    treasury: {
+      default: 4,
+    },
   },
   etherscan: {
     apiKey: {

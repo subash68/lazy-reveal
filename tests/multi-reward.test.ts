@@ -9,6 +9,7 @@ import {
   REVEAL_PERMISSION_ERROR,
   REVEAL_TIMER_ERROR,
   VOODOO_MULTI_REWARD,
+  WITHDRAW_ERROR,
   developmentChains,
 } from "../helper-hardhat-config";
 import { VoodooMultiRewards } from "../typechain-types";
@@ -16,6 +17,7 @@ import { getNamedAccounts, deployments, ethers, network } from "hardhat";
 import { expect } from "chai";
 import { moveTime } from "../utils/move-time";
 import { moveBlock } from "../utils/move-block";
+import { providers } from "ethers";
 
 describe("ERC1155 mint and reveal", async () => {
   let collection: VoodooMultiRewards;
@@ -182,5 +184,43 @@ describe("ERC1155 mint and reveal", async () => {
     await expect(
       collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
     ).to.be.revertedWith(DUPLICATE_REVEAL_ERROR);
+  });
+
+  it("can withdraw funds to specified address", async () => {
+    const { deployer, treasury, buyer } = await getNamedAccounts();
+
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, deployer);
+
+    await collection.addTokens(
+      DEFAULT_TOKEN_ID,
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+      ""
+    );
+
+    // ! only admin can withdraw funds
+
+    const mintTx = await collection.mint(DEFAULT_TOKEN_ID, {
+      value: ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+    });
+    await mintTx.wait(1);
+
+    const balance = await ethers.provider.getBalance(collection.address);
+
+    await expect(balance).to.be.equal(
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString())
+    );
+
+    const previousBalance = await ethers.provider.getBalance(treasury);
+
+    const withdrawTx = await collection.withdraw(treasury);
+    await withdrawTx.wait(1);
+
+    const treasuryBalance = await ethers.provider.getBalance(treasury);
+    await expect(treasuryBalance).to.be.equal(previousBalance.add(balance));
+
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
+    await expect(collection.withdraw(treasury)).to.be.revertedWith(
+      WITHDRAW_ERROR
+    );
   });
 });

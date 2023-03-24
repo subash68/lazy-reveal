@@ -35,6 +35,8 @@ export const PRICE_PER_TOKEN = 0.001;
 export const DEFAULT_TOKEN_ALLOCATION = 1;
 export const DEFAULT_TOKEN_ID = 1;
 
+export const DEFAULT_TREASURY = "";
+
 export const PRE_REVEAL_BASE_URI =
   "https://gateway.pinata.cloud/ipfs/QmZDk3hcmMCiPP5GfCRF29CigfrNZk1ohgvHXwAT2J5aJm/";
 export const PRE_REVEAL_METADATA = "base.json";
@@ -50,3 +52,5 @@ export const INSUFFICIENT_BALANCE = "Insufficient balance";
 export const REVEAL_TIMER_ERROR = "Cannot reveal before timer";
 export const REVEAL_PERMISSION_ERROR = "Permission denied to reveal NFT";
 export const DUPLICATE_REVEAL_ERROR = "Already revealed";
+
+export const WITHDRAW_ERROR = "Caller is not owner";

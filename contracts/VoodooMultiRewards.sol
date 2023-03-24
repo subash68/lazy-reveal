@@ -8,6 +8,7 @@ import "./access/GranularRoles.sol";
 contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
 
     string public baseURI;
+    string public contractURI;
     uint256 public constant REVEAL_AFTER = 3600 seconds;
 
     address private owner_;
@@ -27,8 +28,9 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     event TokenMinted(uint256 tokenId, address receiver);
     event TokenMetadataRevealed(uint256 tokenId, string metadata);
 
-    constructor(string memory _baseURI) ERC1155(_baseURI) GranularRoles(msg.sender) {
+    constructor(string memory _baseURI, string memory _contractURI) ERC1155(_baseURI) GranularRoles(msg.sender) {
         baseURI = _baseURI;
+        contractURI = _contractURI;
         owner_ = msg.sender;
     }
 
@@ -45,6 +47,7 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     function owner() public view returns (address) {
         return owner_;
     }
+
 
     // Access: Everyone
     function mint(uint256 _tokenId) public payable {
@@ -89,7 +92,6 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     // add new tokens to contract
     function addTokens(uint256 _tokenId, uint256 _price, string memory _tokenURI) public isOperator(msg.sender) {
         // Check if already present
-
         nfts[_tokenId].revealed = false;
         nfts[_tokenId].metadata = _tokenURI;
         nfts[_tokenId].mintPrice = _price;

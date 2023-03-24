@@ -2,8 +2,10 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { VOODOO_MULTI_REWARD } from "../helper-hardhat-config";
 import { ethers } from "hardhat";
+import { getContractAddress } from "ethers/lib/utils";
+import { readContractAddress } from "../utils/helper-functions";
 
-const deployNFT: DeployFunction = async function (
+const setupRoles: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments } = hre;
@@ -12,7 +14,9 @@ const deployNFT: DeployFunction = async function (
 
   log(`\t Setting up role for operator`);
 
-  const multiToken = await ethers.getContract(VOODOO_MULTI_REWARD, deployer);
+  const address = await readContractAddress(VOODOO_MULTI_REWARD);
+  log(`\t deployed contract address ${address}`);
+  const multiToken = await ethers.getContract(VOODOO_MULTI_REWARD);
 
   const operatorRole = await multiToken.OPERATOR_ROLE();
   const tokenUpdaterRole = await multiToken.UPDATE_TOKEN_ROLE();
@@ -26,5 +30,5 @@ const deployNFT: DeployFunction = async function (
   await updateTokenTx.wait(1);
 };
 
-export default deployNFT;
-deployNFT.tags = ["all", "contract"];
+export default setupRoles;
+setupRoles.tags = ["all", "setup"];
