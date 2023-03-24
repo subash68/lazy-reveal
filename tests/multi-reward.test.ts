@@ -1,15 +1,23 @@
 import {
   DEFAULT_TOKEN_ID,
+  DUPLICATE_REVEAL_ERROR,
+  INSUFFICIENT_BALANCE,
+  OPERATOR_ERROR_MESSAGE,
+  POST_REVEAL_BASE_URI,
   PRICE_PER_TOKEN,
+  REVEAL_AFTER,
+  REVEAL_PERMISSION_ERROR,
+  REVEAL_TIMER_ERROR,
   VOODOO_MULTI_REWARD,
+  developmentChains,
 } from "../helper-hardhat-config";
 import { VoodooMultiRewards } from "../typechain-types";
-import { getNamedAccounts, deployments, ethers } from "hardhat";
+import { getNamedAccounts, deployments, ethers, network } from "hardhat";
 import { expect } from "chai";
 import { moveTime } from "../utils/move-time";
 import { moveBlock } from "../utils/move-block";
 
-describe("ERC721 mint and reveal", async () => {
+describe("ERC1155 mint and reveal", async () => {
   let collection: VoodooMultiRewards;
 
   beforeEach(async () => {
@@ -48,72 +56,131 @@ describe("ERC721 mint and reveal", async () => {
         ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
         ""
       )
-    ).to.be.revertedWith("Caller is not an operator");
+    ).to.be.revertedWith(OPERATOR_ERROR_MESSAGE);
   });
 
-  //   it("can set base URI for contract", async () => {
-  //     const { deployer } = await getNamedAccounts();
-  //     const count = 2;
-  //     await collection.startMint();
-  //     const mintTx = await collection.mint(count, {
-  //       from: deployer,
-  //       value: await ethers.utils.parseEther(
-  //         (PRICE_PER_TOKEN * count).toString()
-  //       ),
-  //     });
-  //     const mintReceipt = await mintTx.wait(1);
+  it("can set price for selected token type", async () => {
+    // Get operator here
+    const { operator, buyer } = await getNamedAccounts();
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, operator);
 
-  //     const setUriTX = await collection.setBaseURI(PRE_REVEAL_BASE_URI);
-  //     await setUriTX.wait(1);
+    const addTokenTx = await collection.addTokens(
+      DEFAULT_TOKEN_ID,
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+      ""
+    );
 
-  //     // this can have multiple token id so test all token id - PRE-REVEAL conditions
-  //     let tokenId;
-  //     for (let i = 0; i < mintReceipt.events!.length; i++) {
-  //       tokenId = mintReceipt.events![i].args!.tokenId;
+    const addTokenReceipt = await addTokenTx.wait(1);
 
-  //       await expect(await collection.tokenURI(tokenId)).to.be.equal(
-  //         PRE_REVEAL_BASE_URI + "base.json"
-  //       );
-  //     }
-  //   });
+    let tokenId =
+      addTokenReceipt.events![addTokenReceipt.events!.length - 1].args!.tokenId;
 
-  //   it("can reveal token id after specified time", async () => {
-  //     const { deployer } = await getNamedAccounts();
+    await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
 
-  //     const count = 5;
-  //     await collection.startMint();
-  //     const mintTx = await collection.mint(count, {
-  //       from: deployer,
-  //       value: await ethers.utils.parseEther(
-  //         (PRICE_PER_TOKEN * count).toString()
-  //       ),
-  //     });
-  //     await mintTx.wait(1);
+    const setPriceTx = await collection.setTokenPrice(
+      tokenId,
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString())
+    );
+    const setPriceReceipt = await setPriceTx.wait(1);
+    tokenId =
+      setPriceReceipt.events![setPriceReceipt.events!.length - 1].args!.tokenId;
+    const price =
+      setPriceReceipt.events![setPriceReceipt.events!.length - 1].args!.price;
 
-  //     const setUriTX = await collection.setBaseURI(PRE_REVEAL_BASE_URI);
-  //     await setUriTX.wait(1);
+    await expect(tokenId).to.be.equal(1);
+    await expect(price).to.be.equal(
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString())
+    );
 
-  //     // move time
-  //     // This operation can only be done in development chains
-  //     if (developmentChains.includes(network.name)) {
-  //       await moveTime(REVEAL_AFTER + 10);
-  //       await moveBlock(1);
-  //     }
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
 
-  //     // set base uri post reveal
-  //     const revealTx = await collection.revealTokenURI(POST_REVEAL_BASE_URI);
-  //     await revealTx.wait(1);
+    await expect(
+      collection.addTokens(
+        DEFAULT_TOKEN_ID,
+        ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+        ""
+      )
+    ).to.be.revertedWith(OPERATOR_ERROR_MESSAGE);
+  });
 
-  //     const mintedTokens = [...Array(count).keys()];
+  it("can mint an NFT for selected token", async () => {
+    const { deployer, buyer } = await getNamedAccounts();
 
-  //     mintedTokens.forEach(async (v) => {
-  //       const tokenURI = await collection.tokenURI(v);
-  //       await expect(tokenURI).to.be.equal(POST_REVEAL_BASE_URI + v.toString());
-  //     });
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, deployer);
 
-  //     const pauseTx = await collection.pauseMint(true);
-  //     await pauseTx.wait(1);
+    await collection.addTokens(
+      DEFAULT_TOKEN_ID,
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+      ""
+    );
 
-  //     await expect(await collection.mintPaused()).to.be.equal(true);
-  //   });
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
+    // check if price is valid
+    await expect(
+      collection.mint(DEFAULT_TOKEN_ID, {
+        value: ethers.utils.parseEther((PRICE_PER_TOKEN - 0.0001).toString()),
+      })
+    ).to.be.revertedWith(INSUFFICIENT_BALANCE);
+
+    const mintTx = await collection.mint(DEFAULT_TOKEN_ID, {
+      value: ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+    });
+    const mintReceipt = await mintTx.wait(1);
+    const tokenId =
+      mintReceipt.events![mintReceipt.events!.length - 1].args!.tokenId;
+    const receiver =
+      mintReceipt.events![mintReceipt.events!.length - 1].args!.receiver;
+    await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
+    await expect(receiver).to.be.equal(buyer);
+  });
+  it("can reveal minted NFT after specific time", async () => {
+    const { deployer, buyer, updater } = await getNamedAccounts();
+
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, deployer);
+
+    let addTokenTx = await collection.addTokens(
+      DEFAULT_TOKEN_ID,
+      ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
+      ""
+    );
+
+    addTokenTx.wait(1);
+
+    // * Check updater role
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
+
+    // Permission error - Role checks
+    await expect(
+      collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
+    ).to.be.revertedWith(REVEAL_PERMISSION_ERROR);
+
+    collection = await ethers.getContract(VOODOO_MULTI_REWARD, updater);
+    // Reveal timer error - Timer checks
+    await expect(
+      collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
+    ).to.be.revertedWith(REVEAL_TIMER_ERROR);
+
+    if (developmentChains.includes(network.name)) {
+      await moveTime(REVEAL_AFTER + 10);
+      await moveBlock(1);
+    }
+
+    const revealTx = await collection.revealNFT(
+      DEFAULT_TOKEN_ID,
+      POST_REVEAL_BASE_URI + 0
+    );
+    const revealReceipt = await revealTx.wait(1);
+    const tokenId =
+      revealReceipt.events![revealReceipt.events!.length - 1].args!.tokenId;
+    const metadata =
+      revealReceipt.events![revealReceipt.events!.length - 1].args!.metadata;
+
+    await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
+    await expect(metadata).to.be.equal(POST_REVEAL_BASE_URI + 0);
+
+    // * check if already revealed
+    await expect(
+      collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
+    ).to.be.revertedWith(DUPLICATE_REVEAL_ERROR);
+  });
 });

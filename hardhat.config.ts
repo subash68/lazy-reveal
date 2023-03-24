@@ -60,6 +60,9 @@ const config: HardhatUserConfig = {
     buyer: {
       default: 2,
     },
+    updater: {
+      default: 3,
+    },
   },
   etherscan: {
     apiKey: {

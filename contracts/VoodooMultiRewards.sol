@@ -23,6 +23,9 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     mapping(uint256 => Token) public nfts;
 
     event AddTokenType(uint256 tokenId);
+    event SetMintPrice(uint256 tokenId, uint256 price);
+    event TokenMinted(uint256 tokenId, address receiver);
+    event TokenMetadataRevealed(uint256 tokenId, string metadata);
 
     constructor(string memory _baseURI) ERC1155(_baseURI) GranularRoles(msg.sender) {
         baseURI = _baseURI;
@@ -49,16 +52,20 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
         require(msg.value >= nfts[_tokenId].mintPrice, "Insufficient balance");
 
         _mint(msg.sender, _tokenId, 1, "");
+
+        emit TokenMinted(_tokenId, msg.sender);
     }
 
     // only admin and manager 
     function revealNFT(uint256 _tokenId, string memory _tokenURI) public {
-        require(!hasRole(UPDATE_TOKEN_ROLE, msg.sender), "Permission denied to reveal NFT");
+        require(hasRole(UPDATE_TOKEN_ROLE, msg.sender), "Permission denied to reveal NFT");
         require(!nfts[_tokenId].revealed, "Already revealed");
         require(block.timestamp >= nfts[_tokenId].createdOn + REVEAL_AFTER, "Cannot reveal before timer");
 
         nfts[_tokenId].metadata = _tokenURI;
         nfts[_tokenId].revealed = true;
+
+        emit TokenMetadataRevealed(_tokenId, _tokenURI);
     }
 
     function uri(uint256 _tokenId) public view override returns (string memory) {
@@ -86,6 +93,7 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
         nfts[_tokenId].revealed = false;
         nfts[_tokenId].metadata = _tokenURI;
         nfts[_tokenId].mintPrice = _price;
+        nfts[_tokenId].createdOn = block.timestamp;
 
         _startMinting(_tokenId);
 
@@ -94,9 +102,13 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     }
 
     // Set token price
+    function setTokenPrice(uint256 _tokenId, uint256 _price) public  isOperator(msg.sender) {
+        nfts[_tokenId].mintPrice = _price;
+
+        emit SetMintPrice(_tokenId, _price);
+    }
 
     // Get token price
-
     function getTokenPrice(uint256 _tokenId) public view returns (uint256) {
         return nfts[_tokenId].mintPrice;
     }

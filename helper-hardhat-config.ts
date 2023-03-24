@@ -42,3 +42,11 @@ export const POST_REVEAL_BASE_URI =
   "https://gateway.pinata.cloud/ipfs/QmNMJfgzTxsrHi6vGVm3NWtfMvxS6SeMs2MxV9WGWYVPDC/";
 export const CONTRACT_URI =
   "https://gateway.pinata.cloud/ipfs/QmXtex5rwo3QR7b8yfyqW8soJCFXZJQvgCo8sfWWEcyA6E";
+
+//   ERROR MESSAGES
+export const OPERATOR_ERROR_MESSAGE = "Caller is not an operator";
+export const INSUFFICIENT_BALANCE = "Insufficient balance";
+
+export const REVEAL_TIMER_ERROR = "Cannot reveal before timer";
+export const REVEAL_PERMISSION_ERROR = "Permission denied to reveal NFT";
+export const DUPLICATE_REVEAL_ERROR = "Already revealed";
