@@ -1,7 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "./interface/IERC1155.sol";
 import "./interface/IERC1155Receiver.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "./access/GranularRoles.sol";
 
 
@@ -42,6 +44,12 @@ contract CustomERC1155 is GranularRoles {
         name = _name;
         symbol = _symbol;
         nextTokenIdToMint = 0;
+    }
+
+    function supportsInterface(bytes4 interfaceID) public view virtual override returns (bool) {
+        return  interfaceID == 0x01ffc9a7 ||    // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
+                interfaceID == 0x4e2312e0 ||    // ERC-1155 `ERC1155TokenReceiver` support (i.e. `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")) ^ bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`).
+                super.supportsInterface(interfaceID);
     }
 
     function balanceOf(address _owner, uint256 _tokenId) public view returns(uint256) {
