@@ -2,8 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "./interface/IERC1155Receiver.sol";
+import "./access/GranularRoles.sol";
 
-contract CustomERC1155 {
+
+contract CustomERC1155 is GranularRoles {
     // token id => (address => balance)
     mapping(uint256 => mapping(address => uint256)) internal _balances;
     // owner => (operator => yes/no)
@@ -30,7 +32,12 @@ contract CustomERC1155 {
 
     event ApprovalForAll(address indexed account, address indexed operator, bool approved);
 
-    constructor(string memory _name, string memory _symbol) {
+    modifier isOperator(address caller) {
+        require(hasRole(OPERATOR_ROLE, caller), "Caller is not an operator");
+        _;
+    }
+
+    constructor(string memory _name, string memory _symbol) GranularRoles(msg.sender) {
         owner = msg.sender;
         name = _name;
         symbol = _symbol;
@@ -90,22 +97,22 @@ contract CustomERC1155 {
         return _tokenUris[_tokenId];
     }
 
-    function mintTo(address _to, uint256 _tokenId, string memory _uri, uint256 _amount) public {
-        require(owner == msg.sender, "not authorized");
+    function addNewToken(uint256 _tokenId, string memory _uri) internal isOperator(msg.sender) returns(uint256) {
+        uint256 tokenIdToAdd;
 
-        uint256 tokenIdToMint;
-
-        if (_tokenId == type(uint256).max) {
-            tokenIdToMint = nextTokenIdToMint;
+        if(_tokenId == type(uint256).max) {
+            tokenIdToAdd = nextTokenIdToMint;
             nextTokenIdToMint += 1;
-            _tokenUris[tokenIdToMint] = _uri;
-        } else {
-            require(_tokenId < nextTokenIdToMint, "invalid id");
-            tokenIdToMint = _tokenId;
+            _tokenUris[tokenIdToAdd] = _uri;
         }
 
-        _balances[tokenIdToMint][_to] += _amount;
-        totalSupply[tokenIdToMint] += _amount;
+        return tokenIdToAdd;
+    }
+
+
+    function mintTo(address _to, uint256 _tokenId, uint256 _amount) internal {
+        _balances[_tokenId][_to] += _amount;
+        totalSupply[_tokenId] += _amount;
         
         emit TransferSingle(msg.sender, address(0), _to, _tokenId, _amount);
     }

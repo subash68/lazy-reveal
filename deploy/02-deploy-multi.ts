@@ -13,7 +13,7 @@ import {
 
 import verify, { writeContractAddress } from "../utils/helper-functions";
 
-const deploy1155: DeployFunction = async function (
+const deployRewardContract: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments, network } = hre;
@@ -46,5 +46,5 @@ const deploy1155: DeployFunction = async function (
   await writeContractAddress(VOODOO_MULTI_REWARD, voodooContract.address);
 };
 
-export default deploy1155;
-deploy1155.tags = ["all", "contract"];
+export default deployRewardContract;
+deployRewardContract.tags = ["all", "rewardContract"];

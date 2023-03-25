@@ -4,14 +4,15 @@ pragma solidity ^0.8.0;
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./ERC1155.sol";
-import "./access/GranularRoles.sol";
+import "./CustomERC1155.sol";
 
-contract VoodooMultiRewards is CustomERC1155, GranularRoles, ReentrancyGuard {
+// This contract should be the operator 
+contract VoodooMultiRewards is CustomERC1155, ReentrancyGuard {
 
     string public baseURI;
     string public contractURI;
     uint256 public constant REVEAL_AFTER = 3600 seconds;
+    uint256 public constant MAX_INT = 2 ** 256 - 1;
 
     struct Token {
         string metadata;
@@ -33,15 +34,10 @@ contract VoodooMultiRewards is CustomERC1155, GranularRoles, ReentrancyGuard {
         string memory _symbol,
         string memory _baseURI, 
         string memory _contractURI
-    ) CustomERC1155(_name, _symbol) GranularRoles(msg.sender) {
+    ) CustomERC1155(_name, _symbol)  {
         baseURI = _baseURI;
         contractURI = _contractURI;
         owner = msg.sender;
-    }
-
-    modifier isOperator(address caller) {
-        require(hasRole(OPERATOR_ROLE, caller), "Caller is not an operator");
-        _;
     }
 
     modifier onlyOwner(address caller) {
@@ -61,7 +57,7 @@ contract VoodooMultiRewards is CustomERC1155, GranularRoles, ReentrancyGuard {
             3. Base uri for the token
             4. amount to mint - default (at most 1)
         */
-        mintTo(msg.sender, _tokenId, baseURI, 1);
+        mintTo(msg.sender, _tokenId, 1);
 
         emit TokenMinted(_tokenId, msg.sender);
     }
@@ -74,6 +70,8 @@ contract VoodooMultiRewards is CustomERC1155, GranularRoles, ReentrancyGuard {
 
         nfts[_tokenId].metadata = _tokenURI;
         nfts[_tokenId].revealed = true;
+
+
 
         emit TokenMetadataRevealed(_tokenId, _tokenURI);
     }
@@ -97,8 +95,10 @@ contract VoodooMultiRewards is CustomERC1155, GranularRoles, ReentrancyGuard {
     }
 
     // add new tokens to contract
-    function addTokens(uint256 _tokenId, uint256 _price, string memory _tokenURI) public isOperator(msg.sender) {
-        // Check if already present
+    function addTokens(uint256 _price, string memory _tokenURI) public isOperator(msg.sender) {        
+        uint256 _tokenId;
+        _tokenId = addNewToken(MAX_INT, _tokenURI);
+        
         nfts[_tokenId].revealed = false;
         nfts[_tokenId].metadata = _tokenURI;
         nfts[_tokenId].mintPrice = _price;
