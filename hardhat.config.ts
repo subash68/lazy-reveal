@@ -17,7 +17,6 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const OPERATOR_KEY = process.env.OPERATOR_KEY || "";
 const BUYER_KEY = process.env.BUYER_KEY || "";
 const UPDATER_KEY = process.env.UPDATER_KEY || "";
-const TREASURY_KEY = process.env.TREASURY_KEY || "";
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -33,17 +32,21 @@ const config: HardhatUserConfig = {
     goerli: {
       url: GOERLI_RPC_URL,
       accounts: [
-        PRIVATE_KEY,
-        OPERATOR_KEY,
-        BUYER_KEY,
-        UPDATER_KEY,
-        TREASURY_KEY,
+        `0x${PRIVATE_KEY}`,
+        `0x${OPERATOR_KEY}`,
+        `0x${BUYER_KEY}`,
+        `0x${UPDATER_KEY}`,
       ],
       chainId: 5,
     },
     mumbai: {
       url: POLYGON_RPC_URL,
-      accounts: [PRIVATE_KEY],
+      accounts: [
+        `0x${PRIVATE_KEY}`,
+        `0x${OPERATOR_KEY}`,
+        `0x${BUYER_KEY}`,
+        `0x${UPDATER_KEY}`,
+      ],
       chainId: 80001,
     },
   },

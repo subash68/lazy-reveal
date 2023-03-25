@@ -4,14 +4,14 @@ pragma solidity ^0.8.0;
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./CustomERC1155.sol";
+import "./ERC1155.sol";
 
 // This contract should be the operator 
-contract VoodooMultiRewards is CustomERC1155, ReentrancyGuard {
+contract VoodooMultiRewards is ERC1155, ReentrancyGuard {
 
     string public baseURI;
     string public contractURI;
-    uint256 public constant REVEAL_AFTER = 3600 seconds;
+    uint256 public constant REVEAL_AFTER = 300 seconds;
     uint256 public constant MAX_INT = 2 ** 256 - 1;
 
     struct Token {
@@ -34,7 +34,7 @@ contract VoodooMultiRewards is CustomERC1155, ReentrancyGuard {
         string memory _symbol,
         string memory _baseURI, 
         string memory _contractURI
-    ) CustomERC1155(_name, _symbol)  {
+    ) ERC1155(_name, _symbol)  {
         baseURI = _baseURI;
         contractURI = _contractURI;
         owner = msg.sender;
@@ -122,7 +122,7 @@ contract VoodooMultiRewards is CustomERC1155, ReentrancyGuard {
         return nfts[_tokenId].mintPrice;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

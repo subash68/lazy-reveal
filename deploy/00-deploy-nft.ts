@@ -2,7 +2,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import {
   CONTRACT_URI,
-  PRE_REVEAL_BASE_URI,
   VOODOO_NFT_CONTRACT,
   developmentChains,
   networkConfig,
@@ -38,5 +37,5 @@ const deployNFT: DeployFunction = async function (
   await writeContractAddress(VOODOO_NFT_CONTRACT, voodooContract.address);
 };
 
-export default deployNFT;
-deployNFT.tags = ["all", "contract"];
+// export default deployNFT;
+// deployNFT.tags = ["all", "contract"];

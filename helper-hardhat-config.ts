@@ -29,7 +29,7 @@ export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 // Deployment configuration
 export const VOODOO_NFT_CONTRACT = "VoodooRewards";
 export const VOODOO_MULTI_REWARD = "VoodooMultiRewards";
-export const CUSTOM_1155_CONTRACT = "CustomERC1155";
+export const CUSTOM_1155_CONTRACT = "ERC1155";
 export const REVEAL_AFTER = 3600; // 1 hour
 export const MAX_SUPPLY = 10; // 0 - 9 tokens will be minted
 export const PRICE_PER_TOKEN = 0.001;

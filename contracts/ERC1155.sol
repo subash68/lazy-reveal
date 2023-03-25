@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "./access/GranularRoles.sol";
 
 
-contract CustomERC1155 is GranularRoles {
+contract ERC1155 is IERC1155, GranularRoles {
     // token id => (address => balance)
     mapping(uint256 => mapping(address => uint256)) internal _balances;
     // owner => (operator => yes/no)
@@ -22,17 +22,17 @@ contract CustomERC1155 is GranularRoles {
     string public symbol;
     address public owner;
 
-    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
+    // event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
 
-    event TransferBatch(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256[] ids,
-        uint256[] values
-    );
+    // event TransferBatch(
+    //     address indexed operator,
+    //     address indexed from,
+    //     address indexed to,
+    //     uint256[] ids,
+    //     uint256[] values
+    // );
 
-    event ApprovalForAll(address indexed account, address indexed operator, bool approved);
+    // event ApprovalForAll(address indexed account, address indexed operator, bool approved);
 
     modifier isOperator(address caller) {
         require(hasRole(OPERATOR_ROLE, caller), "Caller is not an operator");
@@ -52,12 +52,12 @@ contract CustomERC1155 is GranularRoles {
                 super.supportsInterface(interfaceID);
     }
 
-    function balanceOf(address _owner, uint256 _tokenId) public view returns(uint256) {
+    function balanceOf(address _owner, uint256 _tokenId) public view override returns(uint256) {
         require(_owner != address(0), "Add0");
         return _balances[_tokenId][_owner];
     }
 
-    function balanceOfBatch(address[] memory _accounts, uint256[] memory _tokenIds) public view returns(uint256[] memory) {
+    function balanceOfBatch(address[] memory _accounts, uint256[] memory _tokenIds) public view override returns(uint256[] memory) {
         require(_accounts.length == _tokenIds.length, "accounts id length mismatch");
         // create an array dynamically
         uint256[] memory balances = new uint256[](_accounts.length);
@@ -69,15 +69,15 @@ contract CustomERC1155 is GranularRoles {
         return balances;
     }
 
-    function setApprovalForAll(address _operator, bool _approved) public {
+    function setApprovalForAll(address _operator, bool _approved) public override {
         _operatorApprovals[msg.sender][_operator] = _approved;
     }
 
-    function isApprovedForAll(address _account, address _operator) public view returns(bool) {
+    function isApprovedForAll(address _account, address _operator) public view override returns(bool) {
         return _operatorApprovals[_account][_operator];
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes memory _data) public {
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes memory _data) override public {
         require(_from == msg.sender || isApprovedForAll(_from, msg.sender), "not authorized");
         // create an array
         uint256[] memory ids = new uint256[](1);
@@ -91,7 +91,7 @@ contract CustomERC1155 is GranularRoles {
         _doSafeTransferAcceptanceCheck(msg.sender, _from, _to, _id, _amount, _data);
     }
 
-    function safeBatchTransferFrom(address _from, address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data) public {
+    function safeBatchTransferFrom(address _from, address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data) override public {
         require(_from == msg.sender || isApprovedForAll(_from, msg.sender), "not authorized");
         require(_ids.length == _amounts.length, "length mismatch");
 

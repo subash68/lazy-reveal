@@ -5,12 +5,12 @@ import {
   REVEAL_AFTER,
   VOODOO_NFT_CONTRACT,
   developmentChains,
-} from "../helper-hardhat-config";
-import { VoodooRewards } from "../typechain-types";
+} from "../../helper-hardhat-config";
+import { VoodooRewards } from "../../typechain-types";
 import { getNamedAccounts, deployments, ethers, network } from "hardhat";
 import { expect } from "chai";
-import { moveTime } from "../utils/move-time";
-import { moveBlock } from "../utils/move-block";
+import { moveTime } from "../../utils/move-time";
+import { moveBlock } from "../../utils/move-block";
 
 describe("ERC721 mint and reveal", async () => {
   let collection: VoodooRewards;
