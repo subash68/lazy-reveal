@@ -34,6 +34,8 @@ export const MAX_SUPPLY = 10; // 0 - 9 tokens will be minted
 export const PRICE_PER_TOKEN = 0.001;
 export const DEFAULT_TOKEN_ALLOCATION = 1;
 export const DEFAULT_TOKEN_ID = 1;
+export const CONTRACT_NAME = "TEST CONTRACT";
+export const CONTRACT_SYMBOL = "TCC";
 
 export const DEFAULT_TREASURY = "";
 

@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+// import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./ERC1155.sol";
 import "./access/GranularRoles.sol";
 
-contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
+contract VoodooMultiRewards is CustomERC1155, GranularRoles, ReentrancyGuard {
 
     string public baseURI;
     string public contractURI;
     uint256 public constant REVEAL_AFTER = 3600 seconds;
-
-    address private owner_;
 
     struct Token {
         string metadata;
@@ -28,10 +28,15 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     event TokenMinted(uint256 tokenId, address receiver);
     event TokenMetadataRevealed(uint256 tokenId, string metadata);
 
-    constructor(string memory _baseURI, string memory _contractURI) ERC1155(_baseURI) GranularRoles(msg.sender) {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        string memory _baseURI, 
+        string memory _contractURI
+    ) CustomERC1155(_name, _symbol) GranularRoles(msg.sender) {
         baseURI = _baseURI;
         contractURI = _contractURI;
-        owner_ = msg.sender;
+        owner = msg.sender;
     }
 
     modifier isOperator(address caller) {
@@ -40,21 +45,23 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
     }
 
     modifier onlyOwner(address caller) {
-        require(caller == owner(), "Caller is not owner");
+        require(caller == owner, "Caller is not owner");
         _;
     }
-
-    function owner() public view returns (address) {
-        return owner_;
-    }
-
 
     // Access: Everyone
     function mint(uint256 _tokenId) public payable {
         require(balanceOf(msg.sender, _tokenId) <= 0, "Already owning");
         require(msg.value >= nfts[_tokenId].mintPrice, "Insufficient balance");
 
-        _mint(msg.sender, _tokenId, 1, "");
+        // Custom contract will have
+        /*
+            1. receiver
+            2. token id
+            3. Base uri for the token
+            4. amount to mint - default (at most 1)
+        */
+        mintTo(msg.sender, _tokenId, baseURI, 1);
 
         emit TokenMinted(_tokenId, msg.sender);
     }
@@ -115,7 +122,7 @@ contract VoodooMultiRewards is ERC1155, GranularRoles, ReentrancyGuard {
         return nfts[_tokenId].mintPrice;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, AccessControl) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

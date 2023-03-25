@@ -86,7 +86,7 @@ contract CustomERC1155 {
         _doSafeBatchTransferAcceptanceCheck(msg.sender, _from, _to, _ids, _amounts, _data);
     }
 
-    function uri(uint256 _tokenId) public view returns(string memory) {
+    function uri(uint256 _tokenId) public view virtual returns(string memory) {
         return _tokenUris[_tokenId];
     }
 

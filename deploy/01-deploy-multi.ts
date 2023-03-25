@@ -1,6 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import {
+  CONTRACT_NAME,
+  CONTRACT_SYMBOL,
   CONTRACT_URI,
   PRE_REVEAL_BASE_URI,
   PRE_REVEAL_METADATA,
@@ -19,6 +21,8 @@ const deploy1155: DeployFunction = async function (
   const { deployer } = await getNamedAccounts();
 
   const config = {
+    name: CONTRACT_NAME,
+    symbol: CONTRACT_SYMBOL,
     baseURI: PRE_REVEAL_BASE_URI + PRE_REVEAL_METADATA,
     contractURI: CONTRACT_URI,
   };
