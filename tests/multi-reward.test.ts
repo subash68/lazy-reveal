@@ -35,22 +35,23 @@ describe("ERC1155 mint and reveal", async () => {
   });
 
   it("can add new tokens and mint them before reveal", async () => {
-    // Get operator here
+    // Get operator and buyer account
     const { operator, buyer } = await getNamedAccounts();
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, operator);
 
+    // Add new token by setting price
     const addTokenTx = await collection.addTokens(
       ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
       PRE_REVEAL_BASE_URI + PRE_REVEAL_METADATA
     );
-
     const addTokenReceipt = await addTokenTx.wait(1);
-
     const tokenId =
       addTokenReceipt.events![addTokenReceipt.events!.length - 1].args!.tokenId;
 
+    // * check if token is created.
     await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
 
+    // ! Accounts with other roles cannot add new tokens
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
     // Adding first token here
     await expect(
@@ -62,7 +63,7 @@ describe("ERC1155 mint and reveal", async () => {
   });
 
   it("can set price for selected token type", async () => {
-    // Get operator here
+    // Get operator and other accounts
     const { operator, buyer } = await getNamedAccounts();
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, operator);
 
@@ -78,6 +79,7 @@ describe("ERC1155 mint and reveal", async () => {
 
     await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
 
+    // * Set price for selected token
     const setPriceTx = await collection.setTokenPrice(
       tokenId,
       ethers.utils.parseEther(PRICE_PER_TOKEN.toString())
@@ -114,13 +116,14 @@ describe("ERC1155 mint and reveal", async () => {
     );
 
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
-    // check if price is valid
+    // ! Mint with wrong price for selected token
     await expect(
       collection.mint(DEFAULT_TOKEN_ID, {
         value: ethers.utils.parseEther((PRICE_PER_TOKEN - 0.0001).toString()),
       })
     ).to.be.revertedWith(INSUFFICIENT_BALANCE);
 
+    // * mint with correct price fro selected token
     let mintTx = await collection.mint(DEFAULT_TOKEN_ID, {
       value: ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
     });
@@ -132,7 +135,7 @@ describe("ERC1155 mint and reveal", async () => {
     await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
     await expect(receiver).to.be.equal(buyer);
 
-    // Minting another token here
+    // * Mint another token with correct price for different user
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, deployer);
     mintTx = await collection.mint(0, {
       value: ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
@@ -145,6 +148,7 @@ describe("ERC1155 mint and reveal", async () => {
     await expect(tokenId).to.be.equal(0);
     await expect(receiver).to.be.equal(deployer);
   });
+
   it("can reveal minted NFT after specific time", async () => {
     const { deployer, buyer, updater } = await getNamedAccounts();
 
@@ -154,28 +158,30 @@ describe("ERC1155 mint and reveal", async () => {
       ethers.utils.parseEther(PRICE_PER_TOKEN.toString()),
       PRE_REVEAL_BASE_URI + PRE_REVEAL_METADATA
     );
-
     addTokenTx.wait(1);
 
     // * Check updater role
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
 
-    // Permission error - Role checks
+    // ! Reveal permission error for incorrect role
     await expect(
       collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
     ).to.be.revertedWith(REVEAL_PERMISSION_ERROR);
 
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, updater);
-    // Reveal timer error - Timer checks
+
+    // ! Cannot reveal before specified time
     await expect(
       collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
     ).to.be.revertedWith(REVEAL_TIMER_ERROR);
 
+    // MOVING TIME AND BLOCK
     if (developmentChains.includes(network.name)) {
       await moveTime(REVEAL_AFTER + 10);
       await moveBlock(1);
     }
 
+    // * Can reveal NFT metadata after all parameters are satisfied
     const revealTx = await collection.revealNFT(
       DEFAULT_TOKEN_ID,
       POST_REVEAL_BASE_URI + 0
@@ -189,7 +195,7 @@ describe("ERC1155 mint and reveal", async () => {
     await expect(tokenId).to.be.equal(DEFAULT_TOKEN_ID);
     await expect(metadata).to.be.equal(POST_REVEAL_BASE_URI + 0);
 
-    // * check if already revealed
+    // ! check if already revealed
     await expect(
       collection.revealNFT(DEFAULT_TOKEN_ID, POST_REVEAL_BASE_URI + 0)
     ).to.be.revertedWith(DUPLICATE_REVEAL_ERROR);
@@ -224,8 +230,10 @@ describe("ERC1155 mint and reveal", async () => {
     await withdrawTx.wait(1);
 
     const treasuryBalance = await ethers.provider.getBalance(treasury);
+    // * Check if withdraw amount is received correctly
     await expect(treasuryBalance).to.be.equal(previousBalance.add(balance));
 
+    // ! Cannot withdraw if not owner
     collection = await ethers.getContract(VOODOO_MULTI_REWARD, buyer);
     await expect(collection.withdraw(treasury)).to.be.revertedWith(
       WITHDRAW_ERROR

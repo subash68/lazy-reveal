@@ -21,19 +21,7 @@ contract ERC1155 is IERC1155, GranularRoles {
     string public name;
     string public symbol;
     address public owner;
-
-    // event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
-
-    // event TransferBatch(
-    //     address indexed operator,
-    //     address indexed from,
-    //     address indexed to,
-    //     uint256[] ids,
-    //     uint256[] values
-    // );
-
-    // event ApprovalForAll(address indexed account, address indexed operator, bool approved);
-
+    
     modifier isOperator(address caller) {
         require(hasRole(OPERATOR_ROLE, caller), "Caller is not an operator");
         _;

@@ -11,8 +11,9 @@ contract VoodooMultiRewards is ERC1155, ReentrancyGuard {
 
     string public baseURI;
     string public contractURI;
-    uint256 public constant REVEAL_AFTER = 300 seconds;
+    uint256 public constant REVEAL_AFTER = 3600 seconds;
     uint256 public constant MAX_INT = 2 ** 256 - 1;
+    uint256 public constant MAX_ALLOCATION = 1;
 
     struct Token {
         string metadata;
@@ -57,7 +58,7 @@ contract VoodooMultiRewards is ERC1155, ReentrancyGuard {
             3. Base uri for the token
             4. amount to mint - default (at most 1)
         */
-        mintTo(msg.sender, _tokenId, 1);
+        mintTo(msg.sender, _tokenId, MAX_ALLOCATION);
 
         emit TokenMinted(_tokenId, msg.sender);
     }
